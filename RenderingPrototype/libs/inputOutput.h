@@ -7,7 +7,9 @@
 #include <mach-o/dyld.h>
 #include <time.h>
 #include <cglm/cglm.h>
+
 #include "camera.h"
+#include "dataImporter.h"
 
 
 
@@ -20,6 +22,12 @@ extern bool mouseSwitchedState;
 // Delta timing globals
 extern float deltaTime;
 extern float lastFrameTime;
+extern float outputTime;
+
+// Pause functionality
+extern bool isPaused;
+extern int starIndex;
+extern int starIndexOnPause;
 
 // Function declarations
 

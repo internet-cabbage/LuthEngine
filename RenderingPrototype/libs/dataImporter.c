@@ -6,9 +6,10 @@ This function accepts a binary file as input data, which has to be formatted suc
     - First value: Number of stars N
     - Second value: Number of time steps / frames to render.
 */
-
 int N = -1;
 int tSteps = -1;
+RGB* colourVals;
+
 
 void importPreChecks(char* filePath) {
     // Opens the file and stores a pointer to where it is stored
@@ -22,6 +23,8 @@ void importPreChecks(char* filePath) {
     // Reads the parameter info
     fread(&N,sizeof(int),1,fptr); // formatting data
     fread(&tSteps,sizeof(int),1,fptr);
+    colourVals = calloc(N,sizeof(RGB));
+    fread(colourVals,sizeof(RGB),N,fptr);
     
     // Moves to the end of the file, and calculates the file size
     int status = fseek(fptr,0,SEEK_END);
@@ -30,7 +33,7 @@ void importPreChecks(char* filePath) {
     fprintf(stdout,"Star parameters: (N: %d, tSteps: %d)\n", N, tSteps);
     
     long fileSize = ftell(fptr);
-    long expectedFileSize = (2L * sizeof(int)) + (3L * N * tSteps * sizeof(float));
+    long expectedFileSize = (2L * sizeof(int)) + (N * sizeof(RGB)) + (3L * N * tSteps * sizeof(float));
 
     if (fileSize != expectedFileSize) {
         fprintf(stderr, "ERROR: Actual file size differs from expected value\n");
@@ -62,7 +65,7 @@ vec3* importStarFrame(char* filePath, int frameIndex) {
         exit(-1);
     }
 
-    size_t startIndex = 2 * sizeof(int) + (3L * frameIndex * N * sizeof(float));
+    size_t startIndex = (2 * sizeof(int)) + (N * sizeof(RGB)) + (3L * frameIndex * N * sizeof(float));
     fseek(fptr,startIndex,SEEK_SET);
     fread(starData,sizeof(vec3),(size_t) N, fptr);
     

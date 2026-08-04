@@ -2,8 +2,8 @@
 out vec4 fragColor;
 
 in vec2 mapping;
+in vec3 starUniqueColourOut;
 
-uniform vec3 starColour;
 uniform float glowScale;
 
 void main() {
@@ -15,6 +15,7 @@ void main() {
     if (distSquared > glowSquared) {
         discard;
     }
+
     // Ensure the core is rendered solid
     float glow = 1.0;
     if (distSquared > 1.0) {
@@ -23,7 +24,6 @@ void main() {
         float falloff = 1.0 - (distSquared/glowSquared);
         glow *= falloff;
     }
-
-    fragColor = vec4(starColour*glow, 1.0);
+    fragColor = vec4(starUniqueColourOut*glow, 1.0);
 
 }

@@ -10,7 +10,32 @@ bool mouseSwitchedState = true;
 // Delta timing globals
 float deltaTime =   0.0f;
 float lastFrameTime =   0.0f;
+float outputTime = 0.0;
 
+// Pause functionality
+bool isPaused = false;
+int starIndex = 0;
+int starIndexOnPause = -1;
+
+void starIndexChanger(int change) {
+    if ((starIndex < 0) || (starIndex > tSteps)) {
+        starIndex = 0;
+    }
+    if (starIndex + change > tSteps) {
+        starIndex = (starIndex + change) - tSteps;
+    }
+    else if (starIndex + change < 0) {
+        // The frameDifference variable is the number of index positions the starIndex is currently undershooting the array by
+        int frameDifference = abs(starIndex + change);
+        starIndex = tSteps - frameDifference;
+    }
+    else {
+        printf("Old index: %d/n",starIndex);
+        starIndex += change;
+        printf("New index: %d/n",starIndex);
+        fflush(stdout);
+    }
+}
 
 
 // A function to run when detecting discrete keystrokes (or a repeated stroke with a delay between the key being initially held and the action)
@@ -29,6 +54,21 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
     if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
         cameraSpeed *= 0.8;
         glm_clamp(cameraSpeed, minCamSpeed, maxCamSpeed);       
+    }
+    if (key == GLFW_KEY_P && action == GLFW_PRESS) {
+        isPaused = !isPaused;
+    }
+    if ((key == GLFW_KEY_PERIOD) && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+        starIndexChanger(-1);
+    }
+    if ((key == GLFW_KEY_COMMA) && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+        starIndexChanger(1);
+    }
+    if ((key == GLFW_KEY_K) && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+        starIndexChanger(30);
+    }
+    if ((key == GLFW_KEY_L) && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+        starIndexChanger(-30);
     }
 }
 

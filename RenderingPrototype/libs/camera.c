@@ -6,11 +6,11 @@ vec3 cameraFront =  {0.0,0.0,-1.0};
 vec3 cameraUp =     {0.0,1.0,0.0};
 float cameraFOV =   45.0f;
 
-float maxRenderDistance = 20000.0f;
+float maxRenderDistance = 40000.0f;
 float minRenderDistance = 0.1f;
-float maxCamSpeed = 2000.0f;
-float minCamSpeed = 5.0f;
-float cameraSpeed = 200.f;
+float maxCamSpeed = 4000.0f;
+float minCamSpeed = 50.0f;
+float cameraSpeed = 2000.f;
 
 // Mouse globals
 float sensitivity = 0.001f;

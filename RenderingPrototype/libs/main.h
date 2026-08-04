@@ -13,9 +13,10 @@
 #include "shader.h"
 #include "inputOutput.h"
 #include "dataImporter.h"
+#include "graphics.h"
 
 
-extern float glowCoefficient;
+
 
 
 #define STB_IMAGE_IMPLEMENTATION
