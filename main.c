@@ -14,17 +14,17 @@ int main() {
     srand((unsigned int)time(NULL));
     // Simulation parameters
     size_t count = 0; // Number of bodies 
-    size_t capacity = 20000; // Maximum number of bodies which the simulation can handle
-    int tSteps = 2000;
-    double antiSingularity = 3.0;
-    double G = 5;
-    double theta = 1.0; 
+    size_t capacity = 30000; // Maximum number of bodies which the simulation can handle
+    int tSteps = 5000;
+    double antiSingularity = 4.0;
+    double G = 50;
+    double theta = 1.0;
     int xMax = 10000; // Maximum x distances
     int yMax = 10000; // Self explanatory
     int zMax = 10000;
-    int mMax = 100; // Max mass
-    int mMin = 90;
-    double dt = 0.15;
+    int mMax = 10; // Max mass 
+    int mMin = 4;
+    double dt = 0.08; // dt = 0.15 usually works well
 
     double *xVals = calloc(capacity, sizeof(double));
     double *yVals = calloc(capacity, sizeof(double));
@@ -33,16 +33,20 @@ int main() {
     double *vyVals = calloc(capacity, sizeof(double));
     double *vzVals = calloc(capacity, sizeof(double));
     double *mVals = randomGen(mMin,mMax, capacity);
+    RGB *colourVals = calloc(capacity, sizeof(vec3));
 
     // Parameters for galaxy spawning
-    vec3 xOff1 = {0.0, 0.0, 0.0}; vec3 vOff1 = {0.0, 0.0, 0.0};
-    vec3 xOff2 = {6000.0, 0.0, 0.0}; vec3 vOff2 = {-5.0, 0.0, 0.0};
+    vec3 xOff1 = {-2000.0, 1000.0, 0.0}; vec3 vOff1 = {6.0, 9.0, 0.0};
+    vec3 xOff2 = {2000.0, -1000.0, 0.0}; vec3 vOff2 = {-6.0, -9.0, 0.0};
 
     // plummerFunc(int *capacity, int NSpawn, int count, double* xVals, double* yVals, double* zVals, double* vxVals, double* vyVals, double* vzVals, vec3 xOff, vec3 vOff, double aConst, double G, double* MVals) { g
 
-    double aConst1 = 1000.0;
-    count += plummerFunc(&capacity,10000,count,xVals,yVals,zVals,vxVals,vyVals,vzVals,xOff1,vOff1,aConst1,G,mVals, 6000);
-    count += distributionFunction(&capacity, 10000, count, 3000,-0.005, 0, xVals, yVals, zVals, vxVals, vyVals, vzVals, xOff2, vOff2);
+    // The aConst variables define the scaling parameter of the plummer spheres, which can be thought of as a 'size' of the core
+    double aConst1 = 500.0;
+    //double aConst2 = 613.0;
+    count += plummerFunc(&capacity,10000,count,xVals,yVals,zVals,vxVals,vyVals,vzVals,xOff1,vOff1,aConst1,G,mVals, 6000, colourVals);
+    //count += plummerFunc(&capacity,10000,count,xVals,yVals,zVals,vxVals,vyVals,vzVals,xOff2,vOff2,aConst2,G,mVals, 6000, colourVals);
+    count += distributionFunction(&capacity, 10000, count, 3000,-0.005, 0, xVals, yVals, zVals, vxVals, vyVals, vzVals, xOff2, vOff2, colourVals);
 
     //double *vxVals = randomContinuous(vMax, N);
     //double *vyVals = randomContinuous(vMax, N);
@@ -157,9 +161,13 @@ int main() {
 
     // Writes the parameters required for the PythonRenderer to interpret the data
 
-    int writeSteps = tSteps / framesPerWrite;
+    int writeSteps = (tSteps / framesPerWrite) + 1;
     fwrite(&countInt,sizeof(countInt),1,dataFile);
     fwrite(&writeSteps,sizeof(writeSteps),1,dataFile);
+    // Write the colourVals array
+    for (int i = 0; i < countInt; i++) {
+        fwrite(&colourVals[i],sizeof(colourVals[i]),1,dataFile);
+    }
 
     printf("Rendering parameters:\n-N: %d\n-tSteps: %d\n\n", countInt,writeSteps);
     //fwrite(&antiSingularity, sizeof(antiSingularity),1,dataFile);

@@ -8,15 +8,15 @@
 
 
 
-int plummerFunc(int *capacity, int NSpawn, int count, double* xVals, double* yVals, double* zVals, double* vxVals, double* vyVals, double* vzVals, vec3 xOff, vec3 vOff, double aConst, double G, double* MVals, double maxR);
+size_t plummerFunc(size_t *capacity, size_t NSpawn, size_t count, double* xVals, double* yVals, double* zVals, double* vxVals, double* vyVals, double* vzVals, vec3 xOff, vec3 vOff, double aConst, double G, double* MVals, double maxR, RGB* colourVals);
  
-int distributionFunction(int *N, int NSpawn, int count, double maxR, double rotSpeed, int genType, 
+size_t distributionFunction(size_t *N, size_t NSpawn, size_t count, double maxR, double rotSpeed, int genType, 
                         double* xVals, double* yVals, double* zVals,
                         double* vxVals, double* vyVals, double* vzVals,
-                        vec3 xOff, vec3 yOff);
+                        vec3 xOff, vec3 yOff, RGB* colourVals);
 
-double* randomGen(int lower, int upper, unsigned int N);
-double* randomContinuousPositive(double maxMag, int N);
-double* randomContinuous(double maxMag, int N);
+double* randomGen(int lower, int upper, size_t N);
+double* randomContinuousPositive(double maxMag, size_t N);
+double* randomContinuous(double maxMag, size_t N);
 
 #endif

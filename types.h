@@ -1,6 +1,8 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+#include <stdint.h>
+
 
 typedef struct {
     double x,y,z;
@@ -15,6 +17,10 @@ typedef struct {
     int type;
 } body;
 
+typedef struct {
+    uint8_t R,G,B;
+} RGB;
+
 typedef struct node {
     // Coordinates of the bounding box of the node
     double xmin, xmax, ymin, ymax, zmin, zmax;
@@ -24,14 +30,16 @@ typedef struct node {
     double cx,cy,cz;
     // If the node is a leaf node, this variable stores the body data
     int childIDs[16];
-
-    int count;
     // the children in the node [top left, top right, bottom left, bottom right]
     /*
     [0,1]
     [2,3] 
     */
     struct node* children[8];
+
+    int count;
+
+
 } node;
 
 

@@ -7,30 +7,34 @@ double piVal = 3.14159265;
 // ================================================================
 
 
-double* randomGen(int lower, int upper, unsigned int N) {
+double* randomGen(int lower, int upper, size_t N) {
     // Adress at which the array is saved at
     double* adress = calloc(N, sizeof(double));
 
-    for (int i = 0; i < N; i++) {
+    int intN = (int) N;
+    for (int i = 0; i < intN; i++) {
         double val = (rand() % (upper-lower+1)) + lower;
         *(adress + i) = val;
     }
     return adress;
 }
 
-double* randomContinuousPositive(double maxMag, int N) {
+double* randomContinuousPositive(double maxMag, size_t N) {
     double* adress = calloc(N, sizeof(double));
-    for (int i = 0; i < N; i++) {
+
+    int intN = (int) N;
+    for (int i = 0; i < intN; i++) {
         double val = maxMag * (double) rand()/RAND_MAX;
         *(adress + i) = val;
     }
     return adress;
 }
 
-double* randomContinuous(double maxMag, int N) {
+double* randomContinuous(double maxMag, size_t N) {
     double *adress = calloc(N, sizeof(double));
 
-    for (int i = 0; i < N; i++) {
+    int intN = (int) N;
+    for (int i = 0; i < intN; i++) {
         if ((double)rand()/RAND_MAX > 0.5) {
             double val = maxMag * (double) rand()/RAND_MAX;
             *(adress + i) = val;
@@ -44,9 +48,10 @@ double* randomContinuous(double maxMag, int N) {
 }
 
 // Generates an array of random probabilities in the range [0,1]
-double* randUSample(int N) {
+double* randUSample(size_t N) {
     double* adress = calloc(N, sizeof(double));
-    for (int i = 0; i < N; i++) {
+    int intN = (int) N;
+    for (int i = 0; i < intN; i++) {
         adress[i] = (double) rand()/RAND_MAX;
     }
     return adress;
@@ -61,16 +66,22 @@ double gFunc(double q) {
     return g;
 }
 
-int plummerFunc(int *capacity, int NSpawn, int count, double* xVals, double* yVals, double* zVals, double* vxVals, double* vyVals, double* vzVals, vec3 xOff, vec3 vOff, double aConst, double G, double* MVals, double maxR) {
-    
+size_t plummerFunc(size_t *capacity, size_t NSpawn, size_t count, double* xVals, double* yVals, double* zVals, double* vxVals, double* vyVals, double* vzVals, vec3 xOff, vec3 vOff, double aConst, double G, double* MVals, double maxR, RGB* colourVals) {
+
     if (count + NSpawn > *capacity) {
         printf("Too many bodies spawned");
         exit(0);
     }
+    
+    // Give all the pieces of a dust a grey colour
+
+    for (int i = (int) count; i < (int)(count + NSpawn); i++) {
+        colourVals[i] = (RGB){199,210,212};
+    }
 
     double totalMass = 0.0;
 
-    for (int i = count; i < count + NSpawn; i++) {
+    for (int i = (int) count; i < (int) (count + NSpawn); i++) {
         totalMass += MVals[i];
     }
     
@@ -89,7 +100,7 @@ int plummerFunc(int *capacity, int NSpawn, int count, double* xVals, double* yVa
     
     // Formula from:
     // https://mathworld.wolfram.com/SpherePointPicking.html
-    for (int i = 0; i < NSpawn; i++) {
+    for (int i = 0; i < (int) NSpawn; i++) {
         azimuthalAngles[i] = 2.0 * piVal * temp1[i];
         polarAngles[i] = acos(2.0 * temp2[i] - 1);
 
@@ -107,8 +118,8 @@ int plummerFunc(int *capacity, int NSpawn, int count, double* xVals, double* yVa
     double* radialDistances = calloc(NSpawn, sizeof(double));
     double g_max = 0.0922;
     double vScalar = 0.0;
-    for (int i = count; i < NSpawn + count; i++) {
-        int j = i - count;
+    for (int i = (int) count; i < (int) (NSpawn + count); i++) {
+        int j = i - (int)count;
         double crtU = pow(u[j], 1.0/3.0);
         int insideRadius = 0;
         while (insideRadius == 0) {
@@ -141,6 +152,7 @@ int plummerFunc(int *capacity, int NSpawn, int count, double* xVals, double* yVa
             vzVals[i] = vScalar * cos(polarAnglesVel[j]) + vOff.z;
         }   
     }
+
         
 
     free(polarAngles);
@@ -156,8 +168,13 @@ int plummerFunc(int *capacity, int NSpawn, int count, double* xVals, double* yVa
     return NSpawn;
 }
 
-int distributionFunction(int *capacity, int NSpawn, int count, double maxR, double rotSpeed, int genType, double* xVals, double* yVals, double* zVals, double* vxVals, double* vyVals, double* vzVals, vec3 xOff, vec3 vOff) {
+size_t distributionFunction(size_t *capacity, size_t NSpawn, size_t count, double maxR, double rotSpeed, int genType, double* xVals, double* yVals, double* zVals, double* vxVals, double* vyVals, double* vzVals, vec3 xOff, vec3 vOff, RGB* colourVals) {
     if (genType == 0) {
+
+        // Colour values
+        for (int i = (int)count; i < (int)(count + NSpawn); i ++) {
+            colourVals[i] = (RGB) {237,180,132};
+        }
         double *randThetas = randomContinuousPositive(2 * piVal, *capacity);
         double *randZWobble = randomContinuous(maxR*0.05, *capacity);
         /* 
@@ -168,7 +185,7 @@ int distributionFunction(int *capacity, int NSpawn, int count, double maxR, doub
        double *squaredRadialDistances = randomContinuous(maxR * maxR, *capacity);
        double *radialDistances = calloc(*capacity, sizeof(double));
 
-       for (int i = count; i < NSpawn + count; i++) {
+       for (int i = (int) count; i < (int) (NSpawn + count); i++) {
             // Handle the square root of a negative number
             if (squaredRadialDistances[i] > 0) {
                 radialDistances[i] = sqrt(squaredRadialDistances[i]);
@@ -184,6 +201,7 @@ int distributionFunction(int *capacity, int NSpawn, int count, double maxR, doub
             vxVals[i] = (v * sin(randThetas[i])) + vOff.x;
             vyVals[i] = (-v * cos(randThetas[i])) + vOff.y;
             vzVals[i] = vOff.z;
+            colourVals[i] = (RGB) {250, 180, 120};
        }
 
        // Close distance
@@ -191,8 +209,8 @@ int distributionFunction(int *capacity, int NSpawn, int count, double maxR, doub
        double minDist = 1e30;
        int body1 = -1, body2 = -1;
 
-       for (int i = count; i < NSpawn + count; i++) {
-            for (int j = i+1; j < NSpawn; j++) {
+       for (int i = (int) count; i < (int) (NSpawn + count); i++) {
+            for (int j = i+1; j < (int) NSpawn; j++) {
                 double dx = xVals[i] - xVals[j], dy = yVals[i] - yVals[j], dz = zVals[i] - zVals[j];
                 double dist = sqrt(dx*dx + dy*dy + dz*dz);
                 if (dist < minDist) {
