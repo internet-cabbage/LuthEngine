@@ -7,8 +7,8 @@
 #include <stdio.h>
 
 extern node *pool;
-extern int nodeCap;
-extern int nodeCount;
+extern size_t nodeCap;
+extern size_t nodeCount;
 
 node *poolAlloc(void);
 void insertBody(node *targetNode, body *b, body* bodies, double antiSingularity);

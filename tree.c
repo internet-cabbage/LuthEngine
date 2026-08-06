@@ -5,20 +5,20 @@
 
 
 // ================================================================
-// Memory management function
+// Memory management function 
 // ================================================================
 
 /*
 Instead of storing all the node data in different places in cache, I can allocate one large pool of memory and store them all contiguously.
 */
 node *pool; // A pointer to where all the nodes will be stored
-int nodeCap; // The max amount of nodes in the pool
-int nodeCount; // How many nodes are currently in the pool
+size_t nodeCap; // The max amount of nodes in the pool
+size_t nodeCount; // How many nodes are currently in the pool
 
 // A bump allocator used to simplify the process of freeing all the memory
 node* poolAlloc() {
     if (nodeCount >= nodeCap-1) {
-        printf("\n \n Pool overflow error at: [%d/%d] \n", nodeCount, nodeCap);
+        printf("\n \n Pool overflow error at: [%zu/%zu] \n", nodeCount, nodeCap);
         exit(1);
     }
     // The adress at which the new node is to be stored
@@ -52,17 +52,17 @@ static inline int isBodyInside(node *tNode, body *b) {
 static inline double length(node *tNode) {
     return (tNode->xmax - tNode->xmin);
 }
-
-static int compareInside(int searchId, node insertNode) {
-    for (int i = 0; i < insertNode.count; i++) {
-        if (searchId == insertNode.childIDs[i]) {
+/*
+static int compareInside(int searchId, node* insertNode) {
+    for (int i = 0; i < insertNode->count; i++) {
+        if (searchId == insertNode->childIDs[i]) {
             return 1;
         }
     }
     
     return 0;
 }
-
+*/
 static void octDivide(node *tNode) {
     double xmid = (tNode->xmin + tNode->xmax) / 2;
     double ymid = (tNode->ymin + tNode->ymax) / 2;
@@ -77,8 +77,6 @@ static void octDivide(node *tNode) {
     [4,5]
     [6,7]
     */
-
-    node emptyNode;
 
     tNode->children[0] = poolAlloc();
     *tNode->children[0] = (node){.xmin = tNode->xmin, .xmax = xmid, .ymin = ymid, .ymax = tNode->ymax, .zmin = zmid, .zmax = tNode->zmax, .count = 0};
@@ -277,9 +275,6 @@ vec3 calculateForce(node *tNode, body *b, double antiSingularity, double G, doub
      THE ABOVE IS A LIE!!! I am leaving it there incase I make the same error. But the node only stores a copy of the object, not its pointer
      so the body in the node and the real body will have different adresses
     */
-    else if (compareInside(b->id, *tNode) == 1) {
-        return (vec3) {0.0,0.0,0.0};
-    }
 
     // Calculates the vector distance between the center of mass of the node, and the body position
     else {
@@ -296,19 +291,22 @@ vec3 calculateForce(node *tNode, body *b, double antiSingularity, double G, doub
         // Instead of the standard nodeSize/r < theta comparison, I squared it so that I dont have to perform an unnecesary square root
         if (tNode->children[0] == NULL || ((nodeSize*nodeSize)/r2) < Theta*Theta) {
             
-            double fMag = (G * tNode->massTot * b->mass) / (r2);
+            if (tNode->childIDs[0] == b->id && tNode->count == 1) {
+            return (vec3) {0.0,0.0,0.0};
+            }
+            double aMag = (G * tNode->massTot) / (r2);
             double r = sqrt(r2);
-            double fx = fMag * (dx/r);
-            double fy = fMag * (dy/r);
-            double fz = fMag * (dz/r);
-            return (vec3) {fx,fy,fz};
+            double ax = aMag * (dx/r);
+            double ay = aMag * (dy/r);
+            double az = aMag * (dz/r);
+            return (vec3) {ax,ay,az};
         }
         // If the nodes are too close to approximate, it recursively calculates it directly
         
         else {
             vec3 totalForce = {0.0,0.0,0.0};
             for (int i = 0; i < 8; i++) {
-                if (tNode->children[i] != NULL) {
+                if (tNode->children[i] != NULL && tNode->childIDs[i] != b->id) {
                     vec3 recursiveForce = calculateForce(tNode->children[i], b, antiSingularity, G, Theta);
                     totalForce.x += recursiveForce.x;
                     totalForce.y += recursiveForce.y;

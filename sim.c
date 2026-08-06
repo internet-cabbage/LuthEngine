@@ -7,8 +7,9 @@
 double buildTime = 0.0;
 double forceTime = 0.0;
 
-void timeLoop(body *bodies, int N, double antiSingularity, double G, int tSteps, double dt, double theta, int xmax, int ymax, int zmax) {
+void timeLoop(body *bodies, size_t N, double antiSingularity, double G, double dt, double theta, int xmax, int ymax, int zmax) {
     // The array storing the acceleration info for the bodies
+    int intN = (int) N;
     vec3 *accelArray = calloc(N, sizeof(vec3));
 
     /*
@@ -28,7 +29,7 @@ void timeLoop(body *bodies, int N, double antiSingularity, double G, int tSteps,
 
     double t0 = omp_get_wtime();
     // Inserts all bodies into the tree to populate it
-    for (int i = 0; i < N; i++) {
+    for (int i = 0; i < intN; i++) {
         insertBody(rootPtr, &bodies[i], bodies, antiSingularity);
     }
     
@@ -36,20 +37,17 @@ void timeLoop(body *bodies, int N, double antiSingularity, double G, int tSteps,
     // Uses the lovely tree to calculate the forces and accelerations on all the bodies
     // It also makes use of openmp to paralellise it
     #pragma omp parallel for schedule(dynamic, 32)
-    for (int i = 0; i < N; i++) {
-        vec3 f = calculateForce(rootPtr, &bodies[i], antiSingularity, G, theta);
+    for (int i = 0; i < intN; i++) {
+        vec3 a = calculateForce(rootPtr, &bodies[i], antiSingularity, G, theta);
         
-        accelArray[i].x = f.x / bodies[i].mass;
-        bodies[i].velocity.x += accelArray[i].x * dt;
+        bodies[i].velocity.x += a.x * dt;
         bodies[i].position.x += bodies[i].velocity.x * dt;
 
 
-        accelArray[i].y = f.y / bodies[i].mass;
-        bodies[i].velocity.y += accelArray[i].y * dt;
+        bodies[i].velocity.y += a.y * dt;
         bodies[i].position.y += bodies[i].velocity.y * dt;
                 
-        accelArray[i].z = f.z / bodies[i].mass;
-        bodies[i].velocity.z += accelArray[i].z * dt;
+        bodies[i].velocity.z += a.z * dt;
         bodies[i].position.z += bodies[i].velocity.z * dt;
     }
     double t2 = omp_get_wtime();
