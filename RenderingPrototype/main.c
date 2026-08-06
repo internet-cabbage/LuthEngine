@@ -36,8 +36,18 @@ void focusHandler(GLFWwindow* window){
     }
 }
 
+/*
+The location array has the following data:
+[projectionLocation, viewLocation, radiusLocation, glowScaleLocation]
+*/
 
-
+inline void setUniforms(int* locationArray,int N,mat4 projection,mat4 view, float starRadius, float glowScale, unsigned int starShaderProgram) {
+    //glUseProgram(starShaderProgram);
+    glUniformMatrix4fv(locationArray[0],1,GL_FALSE,(float*)projection);
+    glUniformMatrix4fv(locationArray[1],1,GL_FALSE,(float*)view);
+    glUniform1f(locationArray[2],starRadius);
+    glUniform1f(locationArray[3],glowScale);
+}
 
 int main(void) {
     glfwInit();
@@ -75,6 +85,10 @@ int main(void) {
 
     unsigned int starShaderProgram = linkShaders("vertexShader.vs", "fragmentShader.fs");
     unsigned int postProcessingShaderProgram = linkShaders("hdrVertexShader.vs", "hdrGamma.fs");
+
+    // Different render passes test
+    unsigned int starCoreShaderProgram = linkShaders("vertexShader.vs","starCoreShader.fs");
+    unsigned int starGlowShaderProgram = linkShaders("vertexShader.vs", "starGlowShader.fs");
 
     // Import star data
     char filePath[] = "/Users/luthaisb/Code/C++/Galaxy_Simulation_3D_Refactor/DataOutput.bin";
@@ -157,12 +171,15 @@ int main(void) {
     int radiusLocation = glGetUniformLocation(starShaderProgram, "radius");
     int glowScaleLocation = glGetUniformLocation(starShaderProgram, "glowScale");
 
+    int starUniformlocations[4] = {projectionLocation,viewLocation,radiusLocation,glowScaleLocation};
+
     // Find uniform locations in the postProcessingShaderProgram
 
     int hdrBufferLocation = glGetUniformLocation(postProcessingShaderProgram, "hdrBuffer");
     int exposureLocation = glGetUniformLocation(postProcessingShaderProgram, "exposure");
 
     float starRadius = 3.0;
+    float glowScale = 8.0;
 
     // Sets the callback functions which accepts users key input and camera input
     glfwSetKeyCallback(window, keyCallback);
@@ -177,14 +194,16 @@ int main(void) {
 
     outputTime = glfwGetTime();
     // render loop
-    glDepthFunc(GL_NEVER);
+    //glDepthFunc(GL_NEVER);
     //glEnable(GL_DEPTH_TEST);
     //glDisable(GL_DEPTH_TEST);
 
     vec3 cameraRight;
+
+    glDepthFunc(GL_LEQUAL);
     
 
-    glBlendFunc(GL_ONE,GL_ONE);
+    //glBlendFunc(GL_ONE,GL_ONE);
     while(!glfwWindowShouldClose(window)) {
         // Function which handles delta timing as well as printing the FPS
         timingFunctions();
@@ -217,8 +236,6 @@ int main(void) {
             glBufferSubData(GL_ARRAY_BUFFER,0,N*3*sizeof(float),starPositions);
         }
 
-
-
         // ==================================================
         // Camera updates
         // ==================================================
@@ -244,12 +261,40 @@ int main(void) {
       
         // Star rendering:
 
+        /*
         glUniformMatrix4fv(projectionLocation,1,GL_FALSE,(float*)projection);
         glUniformMatrix4fv(viewLocation, 1, GL_FALSE, (float*)view);
         glUniform1f(radiusLocation,starRadius);
         glUniform1f(glowScaleLocation, 5.0);
-
+        
         glBindVertexArray(starVAO);
+        glDrawArraysInstanced(GL_TRIANGLE_STRIP,0,4,N);
+        */
+        
+        glBindVertexArray(starVAO);
+
+
+
+        // Render star cores    
+        glUseProgram(starCoreShaderProgram);
+        glEnable(GL_DEPTH_TEST);
+        glDisable(GL_BLEND);
+        glDepthMask(GL_TRUE);
+        glBlendFunc(GL_ONE,GL_ZERO);
+        setUniforms(&starUniformlocations[0],4,projection,view,starRadius,glowScale,starShaderProgram);
+
+        glDrawArraysInstanced(GL_TRIANGLE_STRIP,0,4,N);
+
+        // Render star glows
+        glUseProgram(starGlowShaderProgram);
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_ONE,GL_ONE);
+        //glBlendFunc(GL_SRC_COLOR,GL_ONE_MINUS_SRC_COLOR);
+        //glBlendFunc(GL_ONE_MINUS_SRC_ALPHA,GL_SRC_ALPHA);
+        glDepthMask(GL_FALSE);
+        setUniforms(&starUniformlocations[0],4,projection,view,starRadius,glowScale,starShaderProgram);
+        
         glDrawArraysInstanced(GL_TRIANGLE_STRIP,0,4,N);
 
         // ==================================================
@@ -257,7 +302,6 @@ int main(void) {
         // ==================================================
 
         postProcessing(postProcessingShaderProgram,HDRColorBuffer,hdrBufferLocation,exposureLocation,1.0f,HDRVAO);
-        // Unbind the custom framebuffer
    
     
         // Swap buffers and check for events.
