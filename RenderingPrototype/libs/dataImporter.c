@@ -47,7 +47,7 @@ void importPreChecks(char* filePath) {
 }
 
 vec3* importStarFrame(char* filePath, int frameIndex) {
-    if (frameIndex < 0 || frameIndex > N) {
+    if (frameIndex < 0 || frameIndex > tSteps) {
         fprintf(stderr, "Frame index outside of saved frame data\n");
         fflush(stderr);
     }

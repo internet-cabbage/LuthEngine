@@ -4,6 +4,7 @@
 #define currentDirectory 0
 #define libFolder 1
 #define textureFolder 2
+#define shaderFolder 3
 /* The dirType parameter determines which directory is found.
     -   dirType = 0: Top level project directory
     -   dirType = 1: lib folder
@@ -30,6 +31,10 @@ static char* findDirectory(int dirType) {
     if (dirType == textureFolder) {
         strlcat(buffer,"textures/",sizeof(buffer));
         //printf("Texture directory: %s\n",buffer);
+        return buffer;
+    }
+    if (dirType == shaderFolder) {
+        strlcat(buffer,"shaders/",sizeof(buffer));
         return buffer;
     }
     else {
@@ -82,7 +87,7 @@ void readTexture(char* imageName, unsigned int textArray[16], unsigned int index
 static char* readShader(char* fileName) {
     FILE* fptr;
     char filePath[PATH_MAX];
-    char* filePathPtr = findDirectory(libFolder);
+    char* filePathPtr = findDirectory(shaderFolder);
     strcpy(filePath, filePathPtr);
     strcat(filePath, fileName);
     fptr = fopen(filePath,"r");

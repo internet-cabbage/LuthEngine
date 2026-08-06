@@ -30,9 +30,9 @@ void starIndexChanger(int change) {
         starIndex = tSteps - frameDifference;
     }
     else {
-        printf("Old index: %d/n",starIndex);
+        printf("Old index: %d\n",starIndex);
         starIndex += change;
-        printf("New index: %d/n",starIndex);
+        printf("New index: %d\n",starIndex);
         fflush(stdout);
     }
 }

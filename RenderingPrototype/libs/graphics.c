@@ -5,6 +5,7 @@
 void starRenderInitialisation(unsigned int starShaderProgram, unsigned int HDRFrameBufferObject) {
     glUseProgram(starShaderProgram);
     glEnable(GL_BLEND);
+    glDepthMask(GL_TRUE);
     glBindFramebuffer(GL_FRAMEBUFFER,HDRFrameBufferObject);
     glClearColor(0.0,0.0,0.0,1.0);
     glClear(GL_COLOR_BUFFER_BIT); glClear(GL_DEPTH_BUFFER_BIT);
@@ -17,8 +18,13 @@ void postProcessing(unsigned int postProcessingShaderProgram, unsigned int hdrCo
     glDisable(GL_BLEND);
     // The default framebuffer of 0 is set to clamp intensity values between the range [0,1]
     glBindFramebuffer(GL_FRAMEBUFFER,0);
-    glClear(GL_COLOR_BUFFER_BIT); glClear(GL_DEPTH_BUFFER_BIT);
     glClearColor(0.0f,1.0f,1.0f,1.0f);
+
+    glDepthMask(GL_TRUE); // In order to clear the depth buffer, depth writes need to be temporarily enabled
+    glClear(GL_COLOR_BUFFER_BIT); glClear(GL_DEPTH_BUFFER_BIT);
+    glDepthMask(GL_FALSE);
+    glDisable(GL_DEPTH_TEST);
+
 
     glBindVertexArray(HDRVAO);
 
@@ -26,7 +32,7 @@ void postProcessing(unsigned int postProcessingShaderProgram, unsigned int hdrCo
     glBindTexture(GL_TEXTURE_2D, hdrColorBuffer);
     glUniform1i(hdrBufferLocation,0);
 
-    glUniform1f(exposureLocation,1.0f);
+    glUniform1f(exposureLocation,0.5f);
     glDrawArrays(GL_TRIANGLE_STRIP,0,4);
 }
 
