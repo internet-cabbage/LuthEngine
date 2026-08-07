@@ -29,6 +29,8 @@ The long-term goal of this program is to simulate large scale galaxy collisions,
 
 ## Components of the repo
 
+
+
 ## Physics and algorithms
 
 ### Force evaluation
@@ -50,6 +52,12 @@ The long-term goal of this program is to simulate large scale galaxy collisions,
 ## Build and run
 
 ### Requirements
+
+-  A C compiler (such as **GCC** or **Clang**), with **OpenMP**.
+-  If the OpenGL render is used, the extra requirements are:
+    -  **GLFW**, **cglm**, **glad**.
+-  If the Python viewer is instead used:
+    -  **numpy**, **vispy**, **tqdm**, **moviepy**.
 
 ### Running the software
 
